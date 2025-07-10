@@ -16,4 +16,31 @@ Dataset loading code can be further simplified by making certain assumptions:
 - All data to be loaded takes the form of either a literal or a single file tensor which can be loaded from disk.
 - Each dataset class takes only one filelist.
 - Filelists contain only paths to tensors or python literals (such as class IDs).
-- (?) Tensors are saved in channel-last order. A 1D feature would be of shape `[T, C]`, a 2D feature of shape `[W, H, C]`.
+
+# Example usage
+We use an example a 3-column dataset specified as a filelist:
+```yaml
+# filelist.txt
+test/test_files/tensor1_0.pt|test/test_files/tensor2_0.pt|0
+test/test_files/tensor1_1.pt|test/test_files/tensor2_1.pt|1
+test/test_files/tensor1_2.pt|test/test_files/tensor2_2.pt|2
+```
+
+When creating a `dt.Dataset` we specify names and datatypes for the columns in order.
+```python
+import datatia as dt
+dataset = dt.Dataset(filelist='filelist.txt',
+    field_specs=[
+        dt.FieldSpec(name='tensor1', datatype=torch.Tensor),
+        dt.FieldSpec(name='tensor2', datatype=torch.Tensor),
+        dt.FieldSpec(name='id', datatype=int),
+    ],
+    actions=[dt.PadGroup(fields=['tensor1', 'tensor2'], 
+        dims=[0, 1], values=[0, 0], to_multiple=[4, 5])])
+loader = dataset.loader(batch_size=4)
+batch = next(iter(loader))
+```
+The `PadGroup` action pads dimensions within a group of tensor columns for a
+batch to either the next largest common multiple of a number (`to_multiple`), to
+a fixed length (`to_length`), or to the maximum size of the dimensions within
+the batch.
