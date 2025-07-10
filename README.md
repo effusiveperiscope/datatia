@@ -10,6 +10,7 @@ Pytorch dataset loading often involves certain common tasks:
 - Pad sequence/spatial dims in groups across multiple data fields in a batch
 - Or (on training datasets only) randomly subsample sequence/spatial dims to meet a maximum length constraint
 - Apply data augmentations
+
 Implementing these tasks is often highly repetitive and error prone.
 
 Dataset loading code can be further simplified by making certain assumptions:
