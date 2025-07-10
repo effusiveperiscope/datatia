@@ -45,3 +45,5 @@ The `PadGroup` action pads dimensions within a group of tensor columns for a
 batch to either the next largest common multiple of a number (`to_multiple`), to
 a fixed length (`to_length`), or to the maximum size of the dimensions within
 the batch.
+
+See `datatia/actions.py` for other actions (`Truncate`, `Drop`, `PreMap`, `LiveMapRow`, `RandomSubsample`, `PadGroup`) and `datatia/datatia.py` for `FieldSpec` and `dt.Dataset` API.
