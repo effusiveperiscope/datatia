@@ -13,6 +13,10 @@ class FieldSpec:
     name : str
     datatype : type
     dim : Union[torch.Size, None] = None # -1 should specify a variable dimension
+
+    # For use with PadGroup only: create an extra output field with name {name}_length
+    provide_length : bool = False 
+
     keep_in_memory : bool = True
 
     def validate(self):
@@ -121,6 +125,8 @@ class Dataset(torchDataset):
         }
 
         self.load_data(filelist, field_specs)
+        self.field_specs = field_specs
+        self.field_specs_map = { field_spec.name: field_spec for field_spec in field_specs }
         self.is_train = is_train
 
     def __len__(self):
@@ -144,14 +150,26 @@ class Dataset(torchDataset):
         return data
 
     def collate_fn(self, batch):
+        ret = {}
         for action in self.live_actions['pad_group']:
             field_names = action.fields
-            batch_tensors = [ [ data[field_name] for data in batch ] for field_name in field_names ]
-            new_batch_tensors = action.apply(batch_tensors)
+            batch_tensors = [ [ data[field_name] for field_name in field_names ] for data in batch ]
+            new_batch_tensors, unpadded_lengths = action.apply(batch_tensors)
             for row in range(len(batch)):
                 for i, field_name in enumerate(field_names):
-                    batch[row][field_name] = new_batch_tensors[i][row]
-        return batch
+                    batch[row][field_name] = new_batch_tensors[row][i]
+                    if self.field_specs_map[field_name].provide_length:
+                        batch[row][f'{field_name}_length'] = unpadded_lengths[field_name][row]
+
+        for field_spec in self.field_specs:
+            if field_spec.datatype is torch.Tensor:
+                ret[field_spec.name] = torch.stack([d[field_spec.name] for d in batch])
+                if field_spec.provide_length:
+                    ret[f'{field_spec.name}_length'] = torch.tensor([d[f'{field_spec.name}_length'] for d in batch])
+            else:
+                ret[field_spec.name] = [d[field_spec.name] for d in batch]
+
+        return ret
 
     def loader(self, *args, **kwargs):
         return DataLoader(self, collate_fn=self.collate_fn, *args, **kwargs)

@@ -33,7 +33,10 @@ def generate_dummy_files():
     
     filelist = []
     for i in range(8):
-        tensor1 = torch.randn([8, 32])
+        if i == 0:
+            tensor1 = torch.randn([4, 32])
+        else:
+            tensor1 = torch.randn([8, 32])
         tensor2 = torch.randn([10, 32])
 
         tensor1_path = os.path.join(TEST_FILES_DIR, f'tensor1_{i}.pt')
@@ -50,7 +53,7 @@ def generate_dummy_files():
 def test_datatia():
     generate_dummy_files()
     field_specs = [dt.FieldSpec(
-            name='tensor1', datatype=torch.Tensor),
+            name='tensor1', datatype=torch.Tensor, provide_length=True),
             dt.FieldSpec(
             name='tensor2', datatype=torch.Tensor, keep_in_memory=False),
             dt.FieldSpec(
@@ -105,8 +108,10 @@ def test_datatia():
             dims=[0, 1], values=[0, 0], to_multiple=[4, 5])])
     loader = dataset.loader(batch_size=4)
     batch = next(iter(loader))
-    assert batch[0]['tensor1'].shape[0] == 12
-    assert batch[0]['tensor1'].shape[1] == 35
-    assert batch[0]['tensor2'].shape[0] == 12
-    assert batch[0]['tensor2'].shape[1] == 35
-    assert batch[0]['tensor1'][8:, :].abs().sum() == 0
+    assert batch['tensor1'][0].shape[0] == 12
+    assert batch['tensor1'][0].shape[1] == 35
+    assert batch['tensor2'][0].shape[0] == 12
+    assert batch['tensor2'][0].shape[1] == 35
+    assert batch['tensor1'][0][8:, :].abs().sum() == 0
+    assert batch.get('tensor1_length')
+    assert batch.get('tensor1_length')[0] == 4

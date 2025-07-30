@@ -131,6 +131,9 @@ class PadGroup(Action):
 
     This assumes that the padded dimensions are the same across all fields.
 
+    If LENGTH is specified, this assumes that the dimension to be padded is smaller or equal to the specified length.
+    Use Truncate to ensure that the dimension to be padded is smaller than the specified length.
+
     Dimension indexing uses unbatched dimensions.
     For example, if we expect a 3D tensor with shape [batch, height, width],
     and we want to pad the height and width dimensions to the same length,
@@ -163,14 +166,14 @@ class PadGroup(Action):
         else:
             return PadGroupMode.MAXIMUM
 
-    # [ [field1, field2] , [field1, field2] ]
-
     def apply(self, batch_tensors : list[list[torch.Tensor]]):
+        # [ [field1, field2] , [field1, field2] ]
         if not len(batch_tensors) or not len(batch_tensors[0]):
             return batch_tensors
 
         # 1. Determine target padding length
         target_lengths = [0 for _ in range(len(self.dims))]
+        unpadded_lengths = {}
 
         for i in range(len(self.dims)):
             pad_group_mode = self.determine_pad_mode(i)
@@ -184,12 +187,18 @@ class PadGroup(Action):
                 if pad_group_mode == PadGroupMode.MULTIPLE:
                     target_lengths[i] = int(
                         math.ceil(target_lengths[i] / self.to_multiple[i]) * self.to_multiple[i])
+
+        for i,field in enumerate(self.fields):
+            unpadded_lengths[field] = [
+                batch_tensors[j][i].shape[self.dims[i]] for j in range(len(batch_tensors))
+            ]
  
         # 2. Pad tensors to correct length
         new_batch_tensors = []
         for batch in batch_tensors:
             new_tensors = []
-            for field_tensor in batch:
+            # [field1, field2]
+            for field_tensor in batch: # field1
                 for i in range(len(self.dims)):
                     dim = self.dims[i]
                     target_length = target_lengths[i]
@@ -199,6 +208,7 @@ class PadGroup(Action):
                             0, target_length - field_tensor.shape[-1]), value=self.values[i])    
                     field_tensor = field_tensor.transpose(-1, dim)
                 new_tensors.append(field_tensor)
-            new_batch_tensors.append(new_tensors)
+                # [pad_field1, pad_field2]
+            new_batch_tensors.append(new_tensors) # [ [pad_field1, pad_field2] , [pad_field1, pad_field2] ]
         
-        return new_batch_tensors
+        return new_batch_tensors, unpadded_lengths
