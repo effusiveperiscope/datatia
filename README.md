@@ -8,7 +8,7 @@ Pytorch dataset loading often involves certain common tasks:
 - Drop items that don't satisfy particular requirements
 - Pad sequence/spatial dims to a multiple of a number or a maximum per-batch length
 - Pad sequence/spatial dims in groups across multiple data fields in a batch
-- Or (on training datasets only) randomly subsample sequence/spatial dims to meet a maximum length constraint
+- Or (on training datasets only) randomly subsample sequence/spatial dims to meet a maximum length constraint, and add a "length" field for the pre-padding lengths
 - Apply data augmentations
 
 Implementing these tasks is often highly repetitive and error prone.
