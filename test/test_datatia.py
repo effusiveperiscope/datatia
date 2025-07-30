@@ -88,8 +88,7 @@ def test_datatia():
     # Test live map row
     dataset = dt.Dataset(filelist=TEST_FILES_LIST,
         field_specs = field_specs,
-        actions=[dt.LiveMapRow(field='tensor1', 
-            operation=lambda row: {k: v * 0 for k, v in row.items()})])
+        actions=[dt.LiveMapRow(operation=lambda row: {k: v * 0 for k, v in row.items()})])
     assert dataset[1]['tensor1'].abs().sum() == 0
     assert dataset[1]['tensor2'].abs().sum() == 0
     assert dataset[1]['label'] == 0

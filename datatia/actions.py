@@ -71,10 +71,8 @@ class LiveMapRow(Action):
     (i.e. for random data augmentation)
     """
     def __init__(self, 
-        field : str, 
         operation : Callable[[RowData], RowData]):
         super().__init__()
-        self.field = field
         self.operation = operation
 
     def apply(self, row : RowData):
