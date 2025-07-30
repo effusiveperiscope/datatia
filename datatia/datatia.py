@@ -303,7 +303,7 @@ class Dataset(torchDataset):
             a list of strings, which is the filelist
         """
         
-        if type(filelist) is list[str]:
+        if type(filelist) is list:
             return filelist
         if type(filelist) is str:
             filelist_path = Path(filelist)
