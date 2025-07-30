@@ -25,8 +25,9 @@ def generate_dummy_files():
     The first column is the path to the first tensor, the second column is the
     path to the second tensor, and the third column is the label.
 
-    The tensors are all of shape (8, 32) and (10, 32), and the labels are all
-    integers from 0 to 7.
+    The tensors are all of shape (8, 32) for tensor1 and (10, 32) for tensor2, 
+    and the labels are all integers from 0 to 7, 
+    EXCEPT the first tensor1 which is of shape (4, 32).
 
     """
     os.makedirs(TEST_FILES_DIR, exist_ok=True)
