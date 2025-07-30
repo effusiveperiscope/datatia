@@ -113,5 +113,5 @@ def test_datatia():
     assert batch['tensor2'][0].shape[0] == 12
     assert batch['tensor2'][0].shape[1] == 35
     assert batch['tensor1'][0][8:, :].abs().sum() == 0
-    assert batch.get('tensor1_length')
+    assert batch.get('tensor1_length') is not None
     assert batch.get('tensor1_length')[0] == 4
