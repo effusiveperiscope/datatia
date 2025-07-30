@@ -1,6 +1,7 @@
 import torch
 from typing import TYPE_CHECKING
 from pathlib import Path
+from datatia.utils import longpath
 if TYPE_CHECKING:
     from datatia.actions import Truncate, PreMap
 
@@ -17,7 +18,7 @@ class TensorSource:
             raise ValueError(f"TensorProxy path {self.path} does not exist")
 
         if self.keep_in_memory:
-            self.tensor = self.truncate(torch.load(self.path))
+            self.tensor = self.truncate(torch.load(longpath(self.path)))
             self.tensor = self.premap(this_premap_actions, self.tensor)
 
     def premap(self,
@@ -36,4 +37,4 @@ class TensorSource:
         if self.keep_in_memory:
             return self.tensor
         else:
-            return self.truncate(torch.load(self.path))
+            return self.truncate(torch.load(longpath(self.path)))
