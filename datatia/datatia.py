@@ -38,7 +38,7 @@ class FieldSpec:
             raise ValueError(f"FieldSpec {self.name} has invalid dim {self.dim}")
         if not self.keep_in_memory and not self.datatype is torch.Tensor:
             raise ValueError(f"keep_in_memory=False is only supported for torch.Tensor datatypes")
-        if not isinstance(self.datatype, torch.Tensor) and self.dim is not None:
+        if not self.datatype is torch.Tensor and self.dim is not None:
             raise ValueError(f"FieldSpec {self.name} has dim {self.dim} but datatype is not torch.Tensor")
 
     def data_validate(self, data):
