@@ -106,7 +106,7 @@ class RandomSubsample(Action):
 
         for i, (dim, length) in enumerate(zip(self.dims, self.lengths)):
 
-            if min_length[i] < length:
+            if min_length[i] <= length:
                 start_idx = 0
             else:
                 start_idx = torch.randint(
