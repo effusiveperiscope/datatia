@@ -115,3 +115,5 @@ def test_datatia():
     assert batch['tensor1'][0][8:, :].abs().sum() == 0
     assert batch.get('tensor1_length') is not None
     assert batch.get('tensor1_length')[0] == 4
+    assert batch['label'][0] == 0
+    assert batch['label'].shape == torch.Size([4])

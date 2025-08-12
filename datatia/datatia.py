@@ -166,6 +166,8 @@ class Dataset(torchDataset):
                 ret[field_spec.name] = torch.stack([d[field_spec.name] for d in batch])
                 if field_spec.provide_length:
                     ret[f'{field_spec.name}_length'] = torch.tensor([d[f'{field_spec.name}_length'] for d in batch])
+            elif field_spec.datatype is int:
+                ret[field_spec.name] = torch.tensor([d[field_spec.name] for d in batch])
             else:
                 ret[field_spec.name] = [d[field_spec.name] for d in batch]
 
