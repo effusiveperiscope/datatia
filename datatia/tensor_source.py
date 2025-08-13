@@ -18,7 +18,7 @@ class TensorSource:
             raise ValueError(f"TensorProxy path {self.path} does not exist")
 
         if self.keep_in_memory:
-            self.tensor = self.truncate(torch.load(longpath(self.path)))
+            self.tensor = self.truncate(torch.load(longpath(self.path), map_location='cpu'))
             self.tensor = self.premap(this_premap_actions, self.tensor)
 
     def premap(self,
