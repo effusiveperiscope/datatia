@@ -81,39 +81,47 @@ class LiveMapRow(Action):
 class RandomSubsample(Action):
     """
     Randomly subsample sequence dimensions of one or more tensor fields
-    on every data access, using the same starting index across all fields
-
+    on every data access, using the same starting index across all fields.
+    Use frame_multiples for frame-aligned features (e.g., spectrogram vs waveform)
     Only runs if is_train=True for the dataset.
     """
     def __init__(self,
-        fields : list[str],
-        dims : list[int],
-        lengths : list[int]):
+        fields: list[str],
+        dims: list[int],
+        length: int,  # Single length since all fields represent same time duration
+        frame_multiples: list[int] = []):
         super().__init__()
         self.fields = fields 
         self.dims = dims
-        self.lengths = lengths
-
-    def apply(self, field_tensors : list[torch.Tensor]):
-        new_tensors = []
-        if not len(field_tensors):
+        self.length = length
+        if len(frame_multiples) == 0:
+            self.frame_multiples = [1 for _ in range(len(fields))]
+        else:
+            self.frame_multiples = frame_multiples
+    
+    def apply(self, field_tensors: list[torch.Tensor]):
+        if not field_tensors:
             return field_tensors
-
-        min_length = [min(
-            tensor.shape[dim] for tensor in field_tensors) for dim in self.dims]
-
-        for i, (dim, length) in enumerate(zip(self.dims, self.lengths)):
-
-            if min_length[i] <= length:
+        
+        new_tensors = []
+        
+        for i, tensor in enumerate(field_tensors):
+            dim = self.dims[i] if i < len(self.dims) else self.dims[-1]
+            frame_mult = self.frame_multiples[i]
+            
+            target_length = self.length * frame_mult
+            tensor_length = tensor.shape[dim]
+            
+            if tensor_length <= target_length:
                 start_idx = 0
             else:
-                start_idx = torch.randint(
-                    0, min_length[i] - length, (1,))[0]
-
-            for tensor in field_tensors:
-                tensor = tensor.narrow(dim, start_idx, length)
-                new_tensors.append(tensor)
-
+                # Ensure start_idx is aligned to frame boundaries
+                max_start = (tensor_length - target_length) // frame_mult
+                start_idx = torch.randint(0, max_start + 1, (1,))[0] * frame_mult
+            
+            new_tensor = tensor.narrow(dim, start_idx, target_length)
+            new_tensors.append(new_tensor)
+        
         return new_tensors
 
 class PadGroupMode(Enum):

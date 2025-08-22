@@ -97,7 +97,7 @@ def test_datatia():
     dataset = dt.Dataset(filelist=TEST_FILES_LIST,
         field_specs = field_specs,
         actions=[dt.RandomSubsample(fields=['tensor1', 'tensor2'], 
-            dims=[0], lengths=[4])])
+            dims=[0], length=4)])
     assert dataset[0]['tensor1'].shape[0] == 4
     assert dataset[0]['tensor2'].shape[0] == 4
 
