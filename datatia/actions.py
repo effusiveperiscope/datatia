@@ -128,6 +128,7 @@ class RandomSubsample(Action):
             # Convert time units to actual indices for this tensor
             start_idx = start_time * frame_mult
             target_length = self.length * frame_mult
+            target_length = min(target_length, tensor.shape[dim] - start_idx)
             
             new_tensor = tensor.narrow(dim, start_idx, target_length)
             new_tensors.append(new_tensor)
