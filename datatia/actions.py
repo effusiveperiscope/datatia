@@ -110,6 +110,7 @@ class RandomSubsample(Action):
             frame_mult = self.frame_multiples[i]
             
             target_length = self.length * frame_mult
+            target_length = min(target_length, tensor.shape[dim])
             tensor_length = tensor.shape[dim]
             
             if tensor_length <= target_length:
