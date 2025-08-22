@@ -181,7 +181,7 @@ class Dataset(torchDataset):
         field_specs: list[FieldSpec]):
         """
         Load the data from the filelist into memory
-        and apply Truncate and Drop actions.
+        and apply Truncate, Drop, and PreMap actions.
 
         For each row in the filelist, and for each field in the row, this
         method creates a dictionary mapping the field name to the value.

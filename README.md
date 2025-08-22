@@ -47,3 +47,17 @@ a fixed length (`to_length`), or to the maximum size of the dimensions within
 the batch.
 
 See `datatia/actions.py` for other actions (`Truncate`, `Drop`, `PreMap`, `LiveMapRow`, `RandomSubsample`, `PadGroup`) and `datatia/datatia.py` for `FieldSpec` and `dt.Dataset` API.
+
+# Action order
+Actions may be provided to the API in any order, but they are always executed
+in a predefined order:
+
+When the dataset initializes:
+- `Truncate`
+- `PreMap` (only works on in-memory tensors)
+- `Drop`
+Before collation:
+- `LiveMapRow`
+- `RandomSubsample`
+During collation:
+- `PadGroup`
