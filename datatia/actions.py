@@ -103,22 +103,31 @@ class RandomSubsample(Action):
         if not field_tensors:
             return field_tensors
         
-        new_tensors = []
+        # Find the constraining field (one that limits how much we can sample)
+        max_possible_length = float('inf')
+        for i, tensor in enumerate(field_tensors):
+            dim = self.dims[i] if i < len(self.dims) else self.dims[-1]
+            frame_mult = self.frame_multiples[i]
+            tensor_length = tensor.shape[dim]
+            target_length = self.length * frame_mult
+            
+            possible_length = tensor_length // frame_mult
+            max_possible_length = min(max_possible_length, possible_length)
         
+        # Determine single start index in "time units"
+        if max_possible_length <= self.length:
+            start_time = 0
+        else:
+            start_time = torch.randint(0, max_possible_length - self.length + 1, (1,))[0]
+        
+        new_tensors = []
         for i, tensor in enumerate(field_tensors):
             dim = self.dims[i] if i < len(self.dims) else self.dims[-1]
             frame_mult = self.frame_multiples[i]
             
+            # Convert time units to actual indices for this tensor
+            start_idx = start_time * frame_mult
             target_length = self.length * frame_mult
-            target_length = min(target_length, tensor.shape[dim])
-            tensor_length = tensor.shape[dim]
-            
-            if tensor_length <= target_length:
-                start_idx = 0
-            else:
-                # Ensure start_idx is aligned to frame boundaries
-                max_start = (tensor_length - target_length) // frame_mult
-                start_idx = torch.randint(0, max_start + 1, (1,))[0] * frame_mult
             
             new_tensor = tensor.narrow(dim, start_idx, target_length)
             new_tensors.append(new_tensor)
