@@ -117,3 +117,17 @@ def test_datatia():
     assert batch.get('tensor1_length')[0] == 4
     assert batch['label'][0] == 0
     assert batch['label'].shape == torch.Size([4])
+
+    field_specs = [dt.FieldSpec(
+            name='tensor1', datatype=torch.Tensor, provide_length=True),
+            dt.FieldSpec(
+            name='tensor2', datatype=torch.Tensor, keep_in_memory=False, do_load=False),
+            dt.FieldSpec(
+            name='label', datatype=int)]
+    dataset = dt.Dataset(filelist=TEST_FILES_LIST,
+        field_specs = field_specs,
+        actions=[dt.PadGroup(fields=['tensor1'], 
+            dims=[0], values=[0], to_multiple=[4])])
+    loader = dataset.loader(batch_size=4)
+    batch = next(iter(loader))
+    assert 'tensor2' not in batch
