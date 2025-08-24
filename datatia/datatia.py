@@ -18,6 +18,9 @@ class FieldSpec:
     provide_length : bool = False 
 
     keep_in_memory : bool = True
+    
+    # Set to False -> will not be loaded, will be replaced with None
+    do_load : bool = True
 
     def validate(self):
         """
@@ -134,9 +137,19 @@ class Dataset(torchDataset):
 
     def __getitem__(self, idx):
         data = self.data[idx]
+        
+        def resolve_tensor_source(k, v):
+            field_spec_name = k
+            field_spec = self.field_specs_map[field_spec_name]
+            if not field_spec.do_load:
+                return None
+            if isinstance(v, TensorSource):
+                return v.get()
+            return v
+
         # Resolve any TensorSources
         data : RowData = {
-            k: v.get() if isinstance(v, TensorSource) else v for k, v in data.items()
+            k: resolve_tensor_source(k, v) for k, v in data.items()
         }
         for action in self.live_actions['live_map_row']:
             data = action.apply(data)
@@ -162,6 +175,8 @@ class Dataset(torchDataset):
                         batch[row][f'{field_name}_length'] = unpadded_lengths[field_name][row]
 
         for field_spec in self.field_specs:
+            if not field_spec.do_load:
+                continue
             if field_spec.datatype is torch.Tensor:
                 ret[field_spec.name] = torch.stack([d[field_spec.name] for d in batch])
                 if field_spec.provide_length:
